@@ -1,0 +1,208 @@
+<html>
+<head>
+  <title>Tullylish GAC Coffee Rewards</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="./manifest.json">
+ <meta name="theme-color" content="#0d47a1">
+</head>
+  <style>
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0d47a1, #1976d2); /* BLUE */
+    color: white;
+    text-align: center;
+  }
+
+  .container {
+    padding: 20px;
+  }
+
+  h1 {
+    margin-top: 10px;
+    font-size: 26px;
+    color: #ffeb3b; /* YELLOW */
+  }
+
+  .card {
+    background: #fffde7; /* LIGHT YELLOW */
+    color: #333;
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .stamps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  .stamp {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #e3f2fd; /* LIGHT BLUE */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: 0.2s;
+  }
+
+  .filled {
+    background: #ffeb3b; /* YELLOW */
+    color: #0d47a1;       /* BLUE TEXT */
+    transform: scale(1.05);
+  }
+
+  .progress {
+    font-size: 14px;
+    color: #444;
+  }
+
+  .reward {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #0d47a1;
+  }
+
+  .hint {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 20px;
+  }
+</style>
+
+<body>
+
+<div class="container">
+
+  <!-- 🔽 ADD YOUR LOGO HERE -->
+  <img src="icon.png" class="logo">
+
+  <h1>☕ Tullylish GAC Coffee Rewards</h1>
+
+  <div class="card" id="stampCard">
+    <h2>8 Stamps = 1 Free Coffee</h2>
+
+    <div class="stamps" id="stamps"></div>
+
+    <div class="progress" id="progress"></div>
+    <div class="reward" id="reward"></div>
+    <div class="progress" id="freeCount"></div>
+  </div>
+
+  <div class="hint">Hold card for staff</div>
+
+</div>
+
+<script>
+let stamps = parseInt(localStorage.getItem("stamps") || 0);
+let firstVisit = localStorage.getItem("firstVisit") || "true";
+let freeCoffees = parseInt(localStorage.getItem("freeCoffees") || 0);
+
+// render
+function render() {
+  const container = document.getElementById("stamps");
+  container.innerHTML = "";
+
+  for (let i = 0; i < 8; i++) {
+    let div = document.createElement("div");
+
+    div.className = "stamp" + (i < stamps ? " filled" : "");
+    document.getElementById("freeCount").innerText =
+  "Free coffees earned: " + freeCoffees;
+    
+    // 👇 stamp icon (changes when filled)
+    div.innerHTML = i < stamps 
+      ? '<img src="icon.png" width="30">' 
+      : "•";
+
+    div.addEventListener("click", () => {
+      if (!staffMode) return;
+      if (stamps < 8) addStamp();
+    });
+
+    container.appendChild(div);
+  }
+
+  document.getElementById("progress").innerText =
+    stamps + " / 8 stamps";
+
+  document.getElementById("reward").innerText =
+    stamps >= 8 ? "🎉 Free Coffee Ready!" : "";
+}
+
+// add stamp
+function addStamp() {
+  if (stamps < 8) {
+
+    if (firstVisit === "true") {
+      stamps += 2;
+      firstVisit = "false";
+      localStorage.setItem("firstVisit", "false");
+      alert("🎉 First visit bonus! +2 stamps");
+    } else {
+      stamps += 1;
+    }
+
+    if (stamps > 8) stamps = 8;
+
+    localStorage.setItem("stamps", stamps);
+    render();
+  }
+}
+
+// redeem
+function redeem() {
+  if (stamps >= 8) {
+    stamps = 0;
+    freeCoffees += 1;
+
+    localStorage.setItem("stamps", stamps);
+    localStorage.setItem("freeCoffees", freeCoffees);
+
+    alert("☕ Free coffee redeemed!");
+    render();
+  }
+}
+
+// hold card for staff
+let timer;
+let staffMode = false;
+
+const card = document.getElementById("stampCard");
+
+card.addEventListener("touchstart", () => {
+  timer = setTimeout(() => {
+
+    let pin = prompt("Enter staff PIN:");
+
+    if (pin === "1234") {
+      staffMode = true;
+
+      let action = confirm("OK = Add Stamp\nCancel = Redeem");
+
+      if (action) addStamp();
+      else redeem();
+
+      staffMode = false;
+    } else {
+      alert("Wrong PIN");
+    }
+
+  }, 800);
+});
+
+card.addEventListener("touchend", () => {
+  clearTimeout(timer);
+});
+
+render();
+</script>
+
+</body>
+</html>
